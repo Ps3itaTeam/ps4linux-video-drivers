@@ -1,0 +1,172 @@
+diff -ruN mesa/include/pci_ids/radeonsi_pci_ids.h patched-mesa/include/pci_ids/radeonsi_pci_ids.h
+--- mesa/include/pci_ids/radeonsi_pci_ids.h	2018-03-06 12:53:41.169030195 +0100
++++ patched-mesa/include/pci_ids/radeonsi_pci_ids.h	2018-02-22 14:02:12.876284000 +0100
+@@ -122,6 +122,11 @@
+ CHIPSET(0x985E, MULLINS)
+ CHIPSET(0x985F, MULLINS)
+ 
++CHIPSET(0x9920, LIVERPOOL)
++CHIPSET(0x9922, LIVERPOOL)
++CHIPSET(0x9923, LIVERPOOL)
++CHIPSET(0x9924, LIVERPOOL)
++
+ CHIPSET(0x1304, KAVERI)
+ CHIPSET(0x1305, KAVERI)
+ CHIPSET(0x1306, KAVERI)
+diff -ruN mesa/src/amd/addrlib/amdgpu_asic_addr.h patched-mesa/src/amd/addrlib/amdgpu_asic_addr.h
+--- mesa/src/amd/addrlib/amdgpu_asic_addr.h	2018-03-06 12:53:41.177029904 +0100
++++ patched-mesa/src/amd/addrlib/amdgpu_asic_addr.h	2018-02-22 14:52:38.608444000 +0100
+@@ -68,7 +68,8 @@
+ #define AMDGPU_HAWAII_RANGE     0x28, 0x3C
+ 
+ #define AMDGPU_SPECTRE_RANGE    0x01, 0x41
+-#define AMDGPU_SPOOKY_RANGE     0x41, 0x81
++#define AMDGPU_SPOOKY_RANGE     0x41, 0x61
++#define AMDGPU_STARSHA_RANGE    0x61, 0x81
+ #define AMDGPU_KALINDI_RANGE    0x81, 0xA1
+ #define AMDGPU_GODAVARI_RANGE   0xA1, 0xFF
+ 
+@@ -106,6 +107,7 @@
+ 
+ #define ASICREV_IS_SPECTRE(r)          ASICREV_IS(r, SPECTRE)
+ #define ASICREV_IS_SPOOKY(r)           ASICREV_IS(r, SPOOKY)
++#define ASICREV_IS_STARSHA(r)           ASICREV_IS(r, STARSHA)
+ #define ASICREV_IS_KALINDI(r)          ASICREV_IS(r, KALINDI)
+ #define ASICREV_IS_KALINDI_GODAVARI(r) ASICREV_IS(r, GODAVARI)
+ 
+diff -ruN mesa/src/amd/common/ac_llvm_util.c patched-mesa/src/amd/common/ac_llvm_util.c
+--- mesa/src/amd/common/ac_llvm_util.c	2018-03-06 12:53:41.189029467 +0100
++++ patched-mesa/src/amd/common/ac_llvm_util.c	2018-03-06 12:58:51.634695000 +0100
+@@ -98,6 +98,8 @@
+ 		return "hawaii";
+ 	case CHIP_MULLINS:
+ 		return "mullins";
++	case CHIP_LIVERPOOL:
++		return "bonaire";
+ 	case CHIP_TONGA:
+ 		return "tonga";
+ 	case CHIP_ICELAND:
+diff -ruN mesa/src/amd/common/ac_surface.c patched-mesa/src/amd/common/ac_surface.c
+--- mesa/src/amd/common/ac_surface.c	2018-03-06 12:53:41.193029321 +0100
++++ patched-mesa/src/amd/common/ac_surface.c	2018-02-23 14:24:52.109671000 +0100
+@@ -91,6 +91,10 @@
+ 		*addrlib_family = FAMILY_KV;
+ 		*addrlib_revid = get_first(AMDGPU_KALINDI_RANGE);
+ 		break;
++	case CHIP_LIVERPOOL:
++		*addrlib_family = FAMILY_KV;
++		*addrlib_revid = get_first(AMDGPU_STARSHA_RANGE);
++		break;
+ 	case CHIP_HAWAII:
+ 		*addrlib_family = FAMILY_CI;
+ 		*addrlib_revid = get_first(AMDGPU_HAWAII_RANGE);
+diff -ruN mesa/src/amd/common/amd_family.h patched-mesa/src/amd/common/amd_family.h
+--- mesa/src/amd/common/amd_family.h	2018-03-06 12:53:41.193029321 +0100
++++ patched-mesa/src/amd/common/amd_family.h	2018-02-22 14:19:26.110873000 +0100
+@@ -82,6 +82,7 @@
+     CHIP_BONAIRE,
+     CHIP_KAVERI,
+     CHIP_KABINI,
++    CHIP_LIVERPOOL,
+     CHIP_HAWAII,
+     CHIP_MULLINS,
+     CHIP_TONGA,
+diff -ruN mesa/src/amd/vulkan/radv_device.c patched-mesa/src/amd/vulkan/radv_device.c
+--- mesa/src/amd/vulkan/radv_device.c	2018-03-06 12:53:41.197029175 +0100
++++ patched-mesa/src/amd/vulkan/radv_device.c	2018-03-06 13:01:52.441330000 +0100
+@@ -88,6 +88,7 @@
+ 	case CHIP_OLAND: chip_string = "AMD RADV OLAND"; break;
+ 	case CHIP_HAINAN: chip_string = "AMD RADV HAINAN"; break;
+ 	case CHIP_BONAIRE: chip_string = "AMD RADV BONAIRE"; break;
++	case CHIP_LIVERPOOL: chip_string = "AMD RADV LIVERPOOL"; break;
+ 	case CHIP_KAVERI: chip_string = "AMD RADV KAVERI"; break;
+ 	case CHIP_KABINI: chip_string = "AMD RADV KABINI"; break;
+ 	case CHIP_HAWAII: chip_string = "AMD RADV HAWAII"; break;
+@@ -1088,6 +1089,7 @@
+ 	case CHIP_PITCAIRN:
+ 	case CHIP_VERDE:
+ 	case CHIP_BONAIRE:
++	case CHIP_LIVERPOOL:
+ 	case CHIP_HAWAII:
+ 	case CHIP_TONGA:
+ 	case CHIP_FIJI:
+diff -ruN mesa/src/amd/vulkan/si_cmd_buffer.c patched-mesa/src/amd/vulkan/si_cmd_buffer.c
+--- mesa/src/amd/vulkan/si_cmd_buffer.c	2018-03-06 12:53:41.205028884 +0100
++++ patched-mesa/src/amd/vulkan/si_cmd_buffer.c	2018-02-22 14:55:35.089050000 +0100
+@@ -305,6 +305,10 @@
+ 		raster_config = 0x00000000;
+ 		raster_config_1 = 0x00000000;
+ 		break;
++	case CHIP_LIVERPOOL:
++	    raster_config = 0x2a00161a;
++		raster_config_1 = 0x00000000;
++		break;
+ 	default:
+ 		fprintf(stderr,
+ 			"radv: Unknown GPU, using 0 for raster_config\n");
+diff -ruN mesa/src/gallium/drivers/radeonsi/si_get.c patched-mesa/src/gallium/drivers/radeonsi/si_get.c
+--- mesa/src/gallium/drivers/radeonsi/si_get.c	2018-03-06 12:53:41.461019568 +0100
++++ patched-mesa/src/gallium/drivers/radeonsi/si_get.c	2018-02-22 16:16:00.453920000 +0100
+@@ -64,6 +64,7 @@
+ 	case CHIP_BONAIRE: return "AMD BONAIRE";
+ 	case CHIP_KAVERI: return "AMD KAVERI";
+ 	case CHIP_KABINI: return "AMD KABINI";
++	case CHIP_LIVERPOOL: return "AMD LIVERPOOL";
+ 	case CHIP_HAWAII: return "AMD HAWAII";
+ 	case CHIP_MULLINS: return "AMD MULLINS";
+ 	case CHIP_TONGA: return "AMD TONGA";
+diff -ruN mesa/src/gallium/drivers/radeonsi/si_pipe.c patched-mesa/src/gallium/drivers/radeonsi/si_pipe.c
+--- mesa/src/gallium/drivers/radeonsi/si_pipe.c	2018-03-06 12:53:41.461019568 +0100
++++ patched-mesa/src/gallium/drivers/radeonsi/si_pipe.c	2018-02-25 14:58:47.715780000 +0100
+@@ -537,6 +537,7 @@
+ 	case CHIP_VERDE:
+ 	case CHIP_BONAIRE:
+ 	case CHIP_HAWAII:
++	case CHIP_LIVERPOOL:
+ 	case CHIP_TONGA:
+ 	case CHIP_FIJI:
+ 	case CHIP_POLARIS10:
+diff -ruN mesa/src/gallium/drivers/radeonsi/si_state.c patched-mesa/src/gallium/drivers/radeonsi/si_state.c
+--- mesa/src/gallium/drivers/radeonsi/si_state.c	2018-03-06 12:53:41.465019422 +0100
++++ patched-mesa/src/gallium/drivers/radeonsi/si_state.c	2018-02-22 15:27:24.040117000 +0100
+@@ -4817,6 +4817,10 @@
+ 		raster_config = 0x00000000; /* 0x00000002 */
+ 		raster_config_1 = 0x00000000;
+ 		break;
++	case CHIP_LIVERPOOL:
++		raster_config = 0x2a00161a;
++		raster_config_1 = 0x00000000;
++		break;
+ 	case CHIP_KABINI:
+ 	case CHIP_MULLINS:
+ 	case CHIP_STONEY:
+diff -ruN mesa/src/gallium/targets/d3dadapter9/description.c patched-mesa/src/gallium/targets/d3dadapter9/description.c
+--- mesa/src/gallium/targets/d3dadapter9/description.c	2018-03-06 12:53:41.589014910 +0100
++++ patched-mesa/src/gallium/targets/d3dadapter9/description.c	2018-01-16 13:16:06.592687000 +0100
+@@ -52,6 +52,7 @@
+     {"KAVERI",                      "AMD Radeon(TM) R7 Graphics"},
+     {"KABINI",                      "AMD Radeon HD 8400 / R3 Series"},
+     {"BONAIRE",                     "AMD Radeon HD 8770"},
++    {"LIVERPOOL",                   "AMD Liverpool (PlayStation 4)"},
+     {"OLAND",                       "AMD Radeon HD 8670"},
+     {"HAINAN",                      "AMD Radeon HD 8600M Series"},
+     {"TAHITI",                      "AMD Radeon HD 7900 Series"},
+diff -ruN mesa/src/gallium/winsys/radeon/drm/radeon_drm_winsys.c patched-mesa/src/gallium/winsys/radeon/drm/radeon_drm_winsys.c
+--- mesa/src/gallium/winsys/radeon/drm/radeon_drm_winsys.c	2018-03-06 12:53:41.633013309 +0100
++++ patched-mesa/src/gallium/winsys/radeon/drm/radeon_drm_winsys.c	2018-02-22 15:31:02.327360000 +0100
+@@ -268,6 +268,7 @@
+     case CHIP_BONAIRE:
+     case CHIP_KAVERI:
+     case CHIP_KABINI:
++    case CHIP_LIVERPOOL:
+     case CHIP_HAWAII:
+     case CHIP_MULLINS:
+         ws->info.chip_class = CIK;
+@@ -483,6 +484,7 @@
+         case CHIP_TAHITI:
+         case CHIP_PITCAIRN:
+         case CHIP_BONAIRE:
++        case CHIP_LIVERPOOL:
+             ws->info.max_se = 2;
+             break;
+         case CHIP_HAWAII:

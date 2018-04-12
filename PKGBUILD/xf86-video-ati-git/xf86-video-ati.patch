@@ -1,0 +1,108 @@
+diff -ruN xf86-video-ati/src/ati_pciids_gen.h patched-xf86-video-ati/src/ati_pciids_gen.h
+--- xf86-video-ati/src/ati_pciids_gen.h	2018-03-06 13:10:51.234833900 +0100
++++ patched-xf86-video-ati/src/ati_pciids_gen.h	2018-01-14 15:10:34.294366000 +0100
+@@ -746,6 +746,10 @@
+ #define PCI_CHIP_MULLINS_985D 0x985D
+ #define PCI_CHIP_MULLINS_985E 0x985E
+ #define PCI_CHIP_MULLINS_985F 0x985F
++#define PCI_CHIP_LIVERPOOL_9920 0x9920
++#define PCI_CHIP_LIVERPOOL_9922 0x9922
++#define PCI_CHIP_LIVERPOOL_9923 0x9923
++#define PCI_CHIP_LIVERPOOL_9924 0x9924
+ #define PCI_CHIP_KAVERI_1304 0x1304
+ #define PCI_CHIP_KAVERI_1305 0x1305
+ #define PCI_CHIP_KAVERI_1306 0x1306
+diff -ruN xf86-video-ati/src/pcidb/ati_pciids.csv patched-xf86-video-ati/src/pcidb/ati_pciids.csv
+--- xf86-video-ati/src/pcidb/ati_pciids.csv	2018-03-06 13:10:51.238833798 +0100
++++ patched-xf86-video-ati/src/pcidb/ati_pciids.csv	2018-01-14 15:11:53.465709000 +0100
+@@ -747,6 +747,10 @@
+ "0x985D","MULLINS_985D","MULLINS",1,1,,,1,"MULLINS"
+ "0x985E","MULLINS_985E","MULLINS",1,1,,,1,"MULLINS"
+ "0x985F","MULLINS_985F","MULLINS",1,1,,,1,"MULLINS"
++"0x9920","LIVERPOOL_9920","LIVERPOOL",,1,,,1,"LIVERPOOL"
++"0x9922","LIVERPOOL_9922","LIVERPOOL",,1,,,1,"LIVERPOOL"
++"0x9923","LIVERPOOL_9923","LIVERPOOL",,1,,,1,"LIVERPOOL"
++"0x9924","LIVERPOOL_9924","LIVERPOOL",,1,,,1,"LIVERPOOL"
+ "0x1304","KAVERI_1304","KAVERI",1,1,,,1,"KAVERI"
+ "0x1305","KAVERI_1305","KAVERI",,1,,,1,"KAVERI"
+ "0x1306","KAVERI_1306","KAVERI",1,1,,,1,"KAVERI"
+diff -ruN xf86-video-ati/src/radeon_chipinfo_gen.h patched-xf86-video-ati/src/radeon_chipinfo_gen.h
+--- xf86-video-ati/src/radeon_chipinfo_gen.h	2018-03-06 13:10:51.242833695 +0100
++++ patched-xf86-video-ati/src/radeon_chipinfo_gen.h	2018-01-14 15:14:06.252606000 +0100
+@@ -666,6 +666,10 @@
+  { 0x985D, CHIP_FAMILY_MULLINS, 1, 1, 0, 0, 1 },
+  { 0x985E, CHIP_FAMILY_MULLINS, 1, 1, 0, 0, 1 },
+  { 0x985F, CHIP_FAMILY_MULLINS, 1, 1, 0, 0, 1 },
++ { 0x9920, CHIP_FAMILY_LIVERPOOL, 0, 1, 0, 0, 1 },
++ { 0x9922, CHIP_FAMILY_LIVERPOOL, 0, 1, 0, 0, 1 },
++ { 0x9923, CHIP_FAMILY_LIVERPOOL, 0, 1, 0, 0, 1 },
++ { 0x9924, CHIP_FAMILY_LIVERPOOL, 0, 1, 0, 0, 1 },
+  { 0x1304, CHIP_FAMILY_KAVERI, 1, 1, 0, 0, 1 },
+  { 0x1305, CHIP_FAMILY_KAVERI, 0, 1, 0, 0, 1 },
+  { 0x1306, CHIP_FAMILY_KAVERI, 1, 1, 0, 0, 1 },
+diff -ruN xf86-video-ati/src/radeon_chipset_gen.h patched-xf86-video-ati/src/radeon_chipset_gen.h
+--- xf86-video-ati/src/radeon_chipset_gen.h	2018-03-06 13:10:51.242833695 +0100
++++ patched-xf86-video-ati/src/radeon_chipset_gen.h	2018-01-14 15:15:44.111793000 +0100
+@@ -666,6 +666,10 @@
+   { PCI_CHIP_MULLINS_985D, "MULLINS" },
+   { PCI_CHIP_MULLINS_985E, "MULLINS" },
+   { PCI_CHIP_MULLINS_985F, "MULLINS" },
++  { PCI_CHIP_LIVERPOOL_9920, "LIVERPOOL" },
++  { PCI_CHIP_LIVERPOOL_9922, "LIVERPOOL" },
++  { PCI_CHIP_LIVERPOOL_9923, "LIVERPOOL" },
++  { PCI_CHIP_LIVERPOOL_9924, "LIVERPOOL" },
+   { PCI_CHIP_KAVERI_1304, "KAVERI" },
+   { PCI_CHIP_KAVERI_1305, "KAVERI" },
+   { PCI_CHIP_KAVERI_1306, "KAVERI" },
+diff -ruN xf86-video-ati/src/radeon_kms.c patched-xf86-video-ati/src/radeon_kms.c
+--- xf86-video-ati/src/radeon_kms.c	2018-03-06 13:10:51.246833593 +0100
++++ patched-xf86-video-ati/src/radeon_kms.c	2018-02-23 17:39:16.441252000 +0100
+@@ -1923,7 +1923,8 @@
+     }
+ 
+     /* set cursor size */
+-    if (info->ChipFamily >= CHIP_FAMILY_BONAIRE) {
++    if (info->ChipFamily >= CHIP_FAMILY_BONAIRE &&
++        info->ChipFamily != CHIP_FAMILY_LIVERPOOL) {
+ 	info->cursor_w = CURSOR_WIDTH_CIK;
+ 	info->cursor_h = CURSOR_HEIGHT_CIK;
+     } else {
+diff -ruN xf86-video-ati/src/radeon_pci_chipset_gen.h patched-xf86-video-ati/src/radeon_pci_chipset_gen.h
+--- xf86-video-ati/src/radeon_pci_chipset_gen.h	2018-03-06 13:10:51.246833593 +0100
++++ patched-xf86-video-ati/src/radeon_pci_chipset_gen.h	2018-01-14 15:18:28.118431000 +0100
+@@ -666,6 +666,10 @@
+  { PCI_CHIP_MULLINS_985D, PCI_CHIP_MULLINS_985D, RES_SHARED_VGA },
+  { PCI_CHIP_MULLINS_985E, PCI_CHIP_MULLINS_985E, RES_SHARED_VGA },
+  { PCI_CHIP_MULLINS_985F, PCI_CHIP_MULLINS_985F, RES_SHARED_VGA },
++ { PCI_CHIP_LIVERPOOL_9920, PCI_CHIP_LIVERPOOL_9920, RES_SHARED_VGA },
++ { PCI_CHIP_LIVERPOOL_9922, PCI_CHIP_LIVERPOOL_9922, RES_SHARED_VGA },
++ { PCI_CHIP_LIVERPOOL_9923, PCI_CHIP_LIVERPOOL_9923, RES_SHARED_VGA },
++ { PCI_CHIP_LIVERPOOL_9924, PCI_CHIP_LIVERPOOL_9924, RES_SHARED_VGA },
+  { PCI_CHIP_KAVERI_1304, PCI_CHIP_KAVERI_1304, RES_SHARED_VGA },
+  { PCI_CHIP_KAVERI_1305, PCI_CHIP_KAVERI_1305, RES_SHARED_VGA },
+  { PCI_CHIP_KAVERI_1306, PCI_CHIP_KAVERI_1306, RES_SHARED_VGA },
+diff -ruN xf86-video-ati/src/radeon_pci_device_match_gen.h patched-xf86-video-ati/src/radeon_pci_device_match_gen.h
+--- xf86-video-ati/src/radeon_pci_device_match_gen.h	2018-03-06 13:10:51.246833593 +0100
++++ patched-xf86-video-ati/src/radeon_pci_device_match_gen.h	2018-01-14 15:19:30.182206000 +0100
+@@ -666,6 +666,10 @@
+  ATI_DEVICE_MATCH( PCI_CHIP_MULLINS_985D, 0 ),
+  ATI_DEVICE_MATCH( PCI_CHIP_MULLINS_985E, 0 ),
+  ATI_DEVICE_MATCH( PCI_CHIP_MULLINS_985F, 0 ),
++ ATI_DEVICE_MATCH( PCI_CHIP_LIVERPOOL_9920, 0 ),
++ ATI_DEVICE_MATCH( PCI_CHIP_LIVERPOOL_9922, 0 ),
++ ATI_DEVICE_MATCH( PCI_CHIP_LIVERPOOL_9923, 0 ),
++ ATI_DEVICE_MATCH( PCI_CHIP_LIVERPOOL_9924, 0 ),
+  ATI_DEVICE_MATCH( PCI_CHIP_KAVERI_1304, 0 ),
+  ATI_DEVICE_MATCH( PCI_CHIP_KAVERI_1305, 0 ),
+  ATI_DEVICE_MATCH( PCI_CHIP_KAVERI_1306, 0 ),
+diff -ruN xf86-video-ati/src/radeon_probe.h patched-xf86-video-ati/src/radeon_probe.h
+--- xf86-video-ati/src/radeon_probe.h	2018-03-06 13:10:51.246833593 +0100
++++ patched-xf86-video-ati/src/radeon_probe.h	2018-01-14 15:20:16.034080000 +0100
+@@ -115,6 +115,7 @@
+     CHIP_FAMILY_BONAIRE,
+     CHIP_FAMILY_KAVERI,
+     CHIP_FAMILY_KABINI,
++    CHIP_FAMILY_LIVERPOOL,
+     CHIP_FAMILY_HAWAII,
+     CHIP_FAMILY_MULLINS,
+     CHIP_FAMILY_LAST
