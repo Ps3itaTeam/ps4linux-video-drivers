@@ -7,6 +7,7 @@ Original patches from failoverflow: https://github.com/fail0verflow/ps4-radeon-p
 INSTALLATION
 
 1) Update Archlinux:
+
 sudo pacman -Syu
 
 2) Clone the repository
