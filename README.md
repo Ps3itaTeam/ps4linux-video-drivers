@@ -1,32 +1,23 @@
 # ps4-video-drivers
-Video drivers required to use 3d acceleration on archlinux.
 
+Video drivers required to use 3d hardware acceleration on Arch Linux.
 Original patches from failoverflow: https://github.com/fail0verflow/ps4-radeon-patches
 
+We just set up a repository where you can get pre-patched video drivers for ps4
 
-INSTALLATION
+1) Add the repository to /etc/pacman.conf
+```
+sudo echo -e "\n[ps4]\nSigLevel = Never\nServer = https://ps3ita.it/repo" >> /etc/pacman.conf
+```
 
-1) Update Archlinux:
-
+2) Update Arch Linux
+```
 sudo pacman -Syu
+```
 
-2) Clone the repository
+3) Install the drivers
+```
+sudo pacman -S mesa-git lib32-libdrm-git lib32-mesa-git libdrm-git
+```
 
-git clone https://github.com/Ps3itaTeam/ps4linux-video-drivers
-
-3) Enter in the pkg folder
-
-cd ps4linux-video-drivers/pkg
-
-4) Install the pkgs
-
-sudo pacman -U *
-
-5) Rename libglx
-
-cd /usr/lib/xorg/modules/extensions
-sudo mv libglx.xorg libglx.so
-
-6) Reboot the ps4
-
-sudo reboot
+4) Reboot Arch Linux
