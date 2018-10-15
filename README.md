@@ -21,3 +21,5 @@ sudo pacman -S mesa-git lib32-libdrm-git lib32-mesa-git libdrm-git
 ```
 
 4) Reboot Arch Linux
+
+The drivers will be periodically updated and installed automatically when you upgrade Arch Linux
