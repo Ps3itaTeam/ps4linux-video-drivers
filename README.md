@@ -7,7 +7,7 @@ We just set up a repository where you can get pre-patched video drivers for ps4
 
 1) Add the repository to /etc/pacman.conf
 ```
-sudo echo -e "\n[ps4]\nSigLevel = Never\nServer = https://ps3ita.it/repo" >> /etc/pacman.conf
+sudo echo -e "\n[ps4]\nSigLevel = Never\nServer = https://psxita.it/repo" >> /etc/pacman.conf
 ```
 
 2) Update Arch Linux
