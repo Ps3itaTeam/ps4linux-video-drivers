@@ -2,6 +2,7 @@
 
 Video drivers required to use 3d hardware acceleration on Arch Linux.
 Original patches from failoverflow: https://github.com/fail0verflow/ps4-radeon-patches
+
 Patch for ps4pro (GLADIUS) from eeply.
 
 We just set up a repository where you can get pre-patched video drivers for ps4
