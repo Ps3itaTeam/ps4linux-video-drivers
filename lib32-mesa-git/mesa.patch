@@ -1,0 +1,146 @@
+diff -uNr mesa/include/pci_ids/radeonsi_pci_ids.h mesa-mod/include/pci_ids/radeonsi_pci_ids.h
+--- mesa/include/pci_ids/radeonsi_pci_ids.h	2018-09-11 18:47:33.020834986 +0200
++++ mesa-mod/include/pci_ids/radeonsi_pci_ids.h	2018-09-11 18:52:14.317271954 +0200
+@@ -76,6 +76,11 @@
+ CHIPSET(0x6667, HAINAN)
+ CHIPSET(0x666F, HAINAN)
+ 
++CHIPSET(0x9920, LIVERPOOL)
++CHIPSET(0x9922, LIVERPOOL)
++CHIPSET(0x9923, LIVERPOOL)
++CHIPSET(0x9924, GLADIUS)
++
+ CHIPSET(0x6640, BONAIRE)
+ CHIPSET(0x6641, BONAIRE)
+ CHIPSET(0x6646, BONAIRE)
+diff -uNr mesa/src/amd/common/ac_gpu_info.c mesa-mod/src/amd/common/ac_gpu_info.c
+--- mesa/src/amd/common/ac_gpu_info.c	2018-09-11 18:47:34.800913079 +0200
++++ mesa-mod/src/amd/common/ac_gpu_info.c	2018-09-11 19:08:37.773276310 +0200
+@@ -615,6 +615,8 @@
+ 	case CHIP_ICELAND:
+ 	case CHIP_CARRIZO:
+ 	case CHIP_STONEY:
++	case CHIP_GLADIUS:
++	case CHIP_LIVERPOOL:
+ 		return 16;
+ 	case CHIP_TAHITI:
+ 	case CHIP_PITCAIRN:
+@@ -685,6 +687,14 @@
+ 		raster_config = 0x16000012;
+ 		raster_config_1 = 0x0000002a;
+ 		break;
++	case CHIP_LIVERPOOL:
++                raster_config = 0x2a00161a;
++                raster_config_1 = 0x00000000;
++                break;
++	case CHIP_GLADIUS:
++                raster_config = 0x2a00161a;
++                raster_config_1 = 0x0000002e;
++                break;
+ 	/* 4 SEs / 16 RBs */
+ 	case CHIP_HAWAII:
+ 	case CHIP_FIJI:
+diff -uNr mesa/src/amd/common/ac_llvm_util.c mesa-mod/src/amd/common/ac_llvm_util.c
+--- mesa/src/amd/common/ac_llvm_util.c	2018-09-11 18:47:34.780912201 +0200
++++ mesa-mod/src/amd/common/ac_llvm_util.c	2018-09-11 18:53:01.943538067 +0200
+@@ -103,6 +103,10 @@
+ 		return "hainan";
+ 	case CHIP_BONAIRE:
+ 		return "bonaire";
++   case CHIP_LIVERPOOL:
++       return "bonaire";
++	case CHIP_GLADIUS:
++       return "bonaire";
+ 	case CHIP_KABINI:
+ 		return "kabini";
+ 	case CHIP_KAVERI:
+diff -uNr mesa/src/amd/common/ac_surface.c mesa-mod/src/amd/common/ac_surface.c
+--- mesa/src/amd/common/ac_surface.c	2018-09-11 18:47:34.784912377 +0200
++++ mesa-mod/src/amd/common/ac_surface.c	2018-09-11 18:55:20.850037923 +0200
+@@ -87,6 +87,8 @@
+ 		*addrlib_family = FAMILY_KV;
+ 		*addrlib_revid = get_first(AMDGPU_SPECTRE_RANGE);
+ 		break;
++	case CHIP_GLADIUS:
++	case CHIP_LIVERPOOL:
+ 	case CHIP_KABINI:
+ 		*addrlib_family = FAMILY_KV;
+ 		*addrlib_revid = get_first(AMDGPU_KALINDI_RANGE);
+diff -uNr mesa/src/amd/common/amd_family.h mesa-mod/src/amd/common/amd_family.h
+--- mesa/src/amd/common/amd_family.h	2018-09-11 18:47:34.772911850 +0200
++++ mesa-mod/src/amd/common/amd_family.h	2018-09-11 18:57:10.719068847 +0200
+@@ -82,6 +82,8 @@
+     CHIP_BONAIRE,
+     CHIP_KAVERI,
+     CHIP_KABINI,
++    CHIP_LIVERPOOL,
++    CHIP_GLADIUS,
+     CHIP_HAWAII,
+     CHIP_MULLINS,
+     CHIP_TONGA,
+diff -uNr mesa/src/amd/vulkan/radv_device.c mesa-mod/src/amd/vulkan/radv_device.c
+--- mesa/src/amd/vulkan/radv_device.c	2018-11-12 13:04:42.619197377 +0200
++++ mesa-mod/src/amd/vulkan/radv_device.c	2018-11-12 13:12:55.695892319 +0200
+@@ -98,6 +98,8 @@
+ 	case CHIP_HAINAN: chip_string = "AMD RADV HAINAN"; break;
+ 	case CHIP_BONAIRE: chip_string = "AMD RADV BONAIRE"; break;
+ 	case CHIP_KAVERI: chip_string = "AMD RADV KAVERI"; break;
++	case CHIP_LIVERPOOL: chip_string = "AMD RADV LIVERPOOL"; break;
++	case CHIP_GLADIUS: chip_string = "AMD RADV GLADIUS"; break;
+ 	case CHIP_KABINI: chip_string = "AMD RADV KABINI"; break;
+ 	case CHIP_HAWAII: chip_string = "AMD RADV HAWAII"; break;
+ 	case CHIP_MULLINS: chip_string = "AMD RADV MULLINS"; break;
+diff -uNr mesa/src/gallium/targets/d3dadapter9/description.c mesa-mod/src/gallium/targets/d3dadapter9/description.c
+--- mesa/src/gallium/targets/d3dadapter9/description.c	2018-09-11 18:47:35.528945018 +0200
++++ mesa-mod/src/gallium/targets/d3dadapter9/description.c	2018-09-11 19:01:39.910848232 +0200
+@@ -52,6 +52,8 @@
+     {"KAVERI",                      "AMD Radeon(TM) R7 Graphics"},
+     {"KABINI",                      "AMD Radeon HD 8400 / R3 Series"},
+     {"BONAIRE",                     "AMD Radeon HD 8770"},
++    {"LIVERPOOL",                   "AMD Liverpool (PS4)"},
++    {"GLADIUS",                     "AMD Gladius (PS4 PRO)"},
+     {"OLAND",                       "AMD Radeon HD 8670"},
+     {"HAINAN",                      "AMD Radeon HD 8600M Series"},
+     {"TAHITI",                      "AMD Radeon HD 7900 Series"},
+diff -uNr mesa/src/gallium/winsys/radeon/drm/radeon_drm_winsys.c mesa-mod/src/gallium/winsys/radeon/drm/radeon_drm_winsys.c
+--- mesa/src/gallium/winsys/radeon/drm/radeon_drm_winsys.c	2018-09-11 18:47:36.120970991 +0200
++++ mesa-mod/src/gallium/winsys/radeon/drm/radeon_drm_winsys.c	2018-09-11 19:04:02.301115013 +0200
+@@ -270,6 +270,8 @@
+     case CHIP_KABINI:
+     case CHIP_HAWAII:
+     case CHIP_MULLINS:
++    case CHIP_LIVERPOOL:
++    case CHIP_GLADIUS:
+         ws->info.chip_class = CIK;
+         break;
+     }
+@@ -291,6 +293,8 @@
+     case CHIP_KAVERI:
+     case CHIP_KABINI:
+     case CHIP_MULLINS:
++    case CHIP_LIVERPOOL:
++    case CHIP_GLADIUS:
+        ws->info.has_dedicated_vram = false;
+        break;
+ 
+@@ -481,6 +485,8 @@
+     case CHIP_OLAND:
+     case CHIP_BONAIRE:
+     case CHIP_KAVERI:
++    case CHIP_LIVERPOOL:
++    case CHIP_GLADIUS:
+         ws->info.num_tcc_blocks = 4;
+         break;
+     case CHIP_PITCAIRN:
+@@ -509,9 +515,11 @@
+         case CHIP_TAHITI:
+         case CHIP_PITCAIRN:
+         case CHIP_BONAIRE:
++	case CHIP_LIVERPOOL:
+             ws->info.max_se = 2;
+             break;
+         case CHIP_HAWAII:
++	case CHIP_GLADIUS:
+             ws->info.max_se = 4;
+             break;
+         }

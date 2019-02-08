@@ -1,0 +1,14 @@
+diff -ru xf86-video-amdgpu-git/src/amdgpu_kms.c xf86-video-amdgpu-mod/src/amdgpu_kms.c
+--- xf86-video-amdgpu-git/src/amdgpu_kms.c	2018-09-02 19:07:53.966707518 +0200
++++ xf86-video-amdgpu-mod/src/amdgpu_kms.c	2018-09-02 19:12:10.034706530 +0200
+@@ -1482,8 +1482,8 @@
+ 		info->cursor_w = CURSOR_WIDTH;
+ 		info->cursor_h = CURSOR_HEIGHT;
+ 	} else {
+-		info->cursor_w = CURSOR_WIDTH_CIK;
+-		info->cursor_h = CURSOR_HEIGHT_CIK;
++		info->cursor_w = CURSOR_WIDTH;
++		info->cursor_h = CURSOR_HEIGHT;
+ 	}
+ 
+ 	amdgpu_query_heap_size(pAMDGPUEnt->pDev, AMDGPU_GEM_DOMAIN_GTT,

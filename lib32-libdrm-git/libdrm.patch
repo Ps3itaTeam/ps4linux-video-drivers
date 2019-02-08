@@ -1,0 +1,38 @@
+diff -uNr libdrm/radeon/r600_pci_ids.h libdrm-mod/radeon/r600_pci_ids.h
+--- libdrm/radeon/r600_pci_ids.h	2018-09-11 19:12:26.599458899 +0200
++++ libdrm-mod/radeon/r600_pci_ids.h	2018-09-11 19:13:30.206245078 +0200
+@@ -449,6 +449,11 @@
+ CHIPSET(0x985D, MULLINS_985D, MULLINS)
+ CHIPSET(0x985E, MULLINS_985E, MULLINS)
+ CHIPSET(0x985F, MULLINS_985F, MULLINS)
++ 
++CHIPSET(0x9920, LIVERPOOL_9920, LIVERPOOL)
++CHIPSET(0x9922, LIVERPOOL_9922, LIVERPOOL)
++CHIPSET(0x9923, LIVERPOOL_9923, LIVERPOOL)
++CHIPSET(0x9924, GLADIUS_9924, GLADIUS)
+ 
+ CHIPSET(0x1304, KAVERI_1304, KAVERI)
+ CHIPSET(0x1305, KAVERI_1305, KAVERI)
+diff -uNr libdrm/radeon/radeon_surface.c libdrm-mod/radeon/radeon_surface.c
+--- libdrm/radeon/radeon_surface.c	2018-09-11 19:12:26.599458899 +0200
++++ libdrm-mod/radeon/radeon_surface.c	2018-09-11 19:29:00.115288074 +0200
+@@ -87,6 +87,8 @@
+     CHIP_BONAIRE,
+     CHIP_KAVERI,
+     CHIP_KABINI,
++    CHIP_LIVERPOOL,
++    CHIP_GLADIUS,
+     CHIP_HAWAII,
+     CHIP_MULLINS,
+     CHIP_LAST,
+diff -uNr libdrm/data/amdgpu.ids libdrm-mod/data/amdgpu.ids
+--- libdrm/data/amdgpu.ids	2018-11-13 19:04:54.322355789 +0200
++++ libdrm-mod/data/amdgpu.ids	2018-11-13 19:10:32.555690129 +0200
+@@ -185,3 +185,7 @@
+ 9874,	85,	AMD Radeon R6 Graphics
+ 9874,	84,	AMD Radeon R7 Graphics
+ 6FDF,	EF,	AMD Radeon RX 580 2048SP
++9920,	0,	AMD Liverpool (PS4)
++9922,	0,	AMD Liverpool (PS4)
++9923,	0,	AMD Liverpool (PS4)
++9924,	11,	AMD Gladius (PS4)
