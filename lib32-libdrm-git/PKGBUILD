@@ -1,16 +1,16 @@
-# Maintainer : Lone_Wolf <lonewolf at xs4all dot nl>
+# Maintainer : Lone_Wolf <lonewolf@klaas-de-kat.nl>
 # Contributor : Eric Engestrom <eric@engestrom.ch>
 # Contributor: Laurent Carlier <lordheavym@gmail.com>
 # Contributor : Jan de Groot <jgc@archlinux.org>
 
 pkgname=lib32-libdrm-git
-pkgver=2.4.96.r20.gcfab2fc3
+pkgver=2.4.101.r44.gbf602a2d
 pkgrel=1
 pkgdesc="Userspace interface to kernel DRM services, git 32-bit version"
-arch=(i686 x86_64)
+arch=(x86_64)
 license=('custom')
-depends=('libdrm-git' 'lib32-libpciaccess')
-makedepends=('gcc-multilib' 'meson')
+depends=('libdrm-git' 'lib32-libpciaccess' 'lib32-gcc-libs')
+makedepends=('meson' 'git' 'ninja')
 checkdepends=('lib32-cairo')
 url="http://dri.freedesktop.org/"
 provides=('lib32-libdrm')
@@ -21,40 +21,47 @@ source=('libdrm::git://anongit.freedesktop.org/mesa/drm#branch=master'
 sha256sums=('SKIP'
             '9631d4f694952e3e6ae5a05534c2e93e994e47d3413677a3a00e45c8cef6db93')
 
-prepare() {
-	patch -s -p0 < ../libdrm.patch
-}
           
 pkgver() {
     cd libdrm
     git describe --long --abbrev=8 | sed 's/^libdrm-//;s/\([^-]*-g\)/r\1/;s/-/./g'
 }
 
-build() {
-    export CC="gcc -m32"
-    export CXX="g++ -m32"
-    export PKG_CONFIG_PATH="/usr/lib32/pkgconfig"
+prepare() {
+	patch -p0 < ../libdrm.patch
+	
     if [  -d _build ]; then
         rm -rf _build
     fi
+}
+
+build() {
+    export CC="gcc -m32"
+    export CXX="g++ -m32"
+    export PKG_CONFIG=/usr/bin/i686-pc-linux-gnu-pkg-config
     meson setup libdrm _build \
         --prefix /usr \
         --libdir lib32 \
         --buildtype plain \
         --wrap-mode      nofallback \
-        -D udev=true
+        -D udev=false \
+        -D valgrind=false
+    meson configure _build
     ninja -C _build
 }
 
 check() {
-  meson test -C _build
+   # '-t 10' is needed for the 'threaded' test, which uses the default meson
+   # test timeout of 30 seconds. This is too short for many systems. It can be
+   # removed if upstream fixes the issue.
+    meson test -C _build -t 10
 }
 
 package() {
-  DESTDIR="$pkgdir" ninja -C _build install
+    DESTDIR="$pkgdir" ninja -C _build install
   
-  # remove files already provided by libdrm-git
-  rm -rf "$pkgdir"/usr/{include,share,bin}
+    # remove files already provided by libdrm-git
+    rm -rf "$pkgdir"/usr/{include,share,bin}
   
-  install -Dt "$pkgdir/usr/share/licenses/$pkgname"  -m644 COPYING
+    install -Dt "$pkgdir/usr/share/licenses/$pkgname"  -m644 COPYING
 }

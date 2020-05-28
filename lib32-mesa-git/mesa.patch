@@ -1,146 +1,201 @@
-diff -uNr mesa/include/pci_ids/radeonsi_pci_ids.h mesa-mod/include/pci_ids/radeonsi_pci_ids.h
---- mesa/include/pci_ids/radeonsi_pci_ids.h	2018-09-11 18:47:33.020834986 +0200
-+++ mesa-mod/include/pci_ids/radeonsi_pci_ids.h	2018-09-11 18:52:14.317271954 +0200
-@@ -76,6 +76,11 @@
- CHIPSET(0x6667, HAINAN)
- CHIPSET(0x666F, HAINAN)
+diff -ruN mesa/include/pci_ids/radeonsi_pci_ids.h mesa-mod/include/pci_ids/radeonsi_pci_ids.h
+--- mesa/include/pci_ids/radeonsi_pci_ids.h	2020-05-25 19:29:34.071684000 +0200
++++ mesa-mod/include/pci_ids/radeonsi_pci_ids.h	2020-05-25 19:33:04.775029631 +0200
+@@ -145,6 +145,11 @@
+ CHIPSET(0x131C, KAVERI)
+ CHIPSET(0x131D, KAVERI)
  
 +CHIPSET(0x9920, LIVERPOOL)
 +CHIPSET(0x9922, LIVERPOOL)
 +CHIPSET(0x9923, LIVERPOOL)
 +CHIPSET(0x9924, GLADIUS)
 +
- CHIPSET(0x6640, BONAIRE)
- CHIPSET(0x6641, BONAIRE)
- CHIPSET(0x6646, BONAIRE)
-diff -uNr mesa/src/amd/common/ac_gpu_info.c mesa-mod/src/amd/common/ac_gpu_info.c
---- mesa/src/amd/common/ac_gpu_info.c	2018-09-11 18:47:34.800913079 +0200
-+++ mesa-mod/src/amd/common/ac_gpu_info.c	2018-09-11 19:08:37.773276310 +0200
-@@ -615,6 +615,8 @@
- 	case CHIP_ICELAND:
- 	case CHIP_CARRIZO:
- 	case CHIP_STONEY:
-+	case CHIP_GLADIUS:
-+	case CHIP_LIVERPOOL:
- 		return 16;
- 	case CHIP_TAHITI:
- 	case CHIP_PITCAIRN:
-@@ -685,6 +687,14 @@
- 		raster_config = 0x16000012;
- 		raster_config_1 = 0x0000002a;
- 		break;
-+	case CHIP_LIVERPOOL:
-+                raster_config = 0x2a00161a;
-+                raster_config_1 = 0x00000000;
-+                break;
-+	case CHIP_GLADIUS:
-+                raster_config = 0x2a00161a;
-+                raster_config_1 = 0x0000002e;
-+                break;
- 	/* 4 SEs / 16 RBs */
- 	case CHIP_HAWAII:
+ CHIPSET(0x67A0, HAWAII)
+ CHIPSET(0x67A1, HAWAII)
+ CHIPSET(0x67A2, HAWAII)
+diff -ruN mesa/src/amd/addrlib/src/amdgpu_asic_addr.h mesa-mod/src/amd/addrlib/src/amdgpu_asic_addr.h
+--- mesa/src/amd/addrlib/src/amdgpu_asic_addr.h	2020-05-25 19:29:34.078350000 +0200
++++ mesa-mod/src/amd/addrlib/src/amdgpu_asic_addr.h	2020-05-27 19:09:14.226707518 +0200
+@@ -70,7 +70,9 @@
+ #define AMDGPU_HAWAII_RANGE     0x28, 0x3C
+ 
+ #define AMDGPU_SPECTRE_RANGE    0x01, 0x41
+-#define AMDGPU_SPOOKY_RANGE     0x41, 0x81
++#define AMDGPU_SPOOKY_RANGE     0x41, 0x61
++#define AMDGPU_STARSHA_RANGE    0x61, 0x71
++#define AMDGPU_STARSHP_RANGE    0x71, 0x81
+ #define AMDGPU_KALINDI_RANGE    0x81, 0xA1
+ #define AMDGPU_GODAVARI_RANGE   0xA1, 0xFF
+ 
+@@ -115,6 +117,8 @@
+ 
+ #define ASICREV_IS_SPECTRE(r)          ASICREV_IS(r, SPECTRE)
+ #define ASICREV_IS_SPOOKY(r)           ASICREV_IS(r, SPOOKY)
++#define ASICREV_IS_STARSHA(r)           ASICREV_IS(r, STARSHA)
++#define ASICREV_IS_STARSHP(r)           ASICREV_IS(r, STARSHP)
+ #define ASICREV_IS_KALINDI(r)          ASICREV_IS(r, KALINDI)
+ #define ASICREV_IS_KALINDI_GODAVARI(r) ASICREV_IS(r, GODAVARI)
+ 
+diff -ruN mesa/src/amd/common/ac_gpu_info.c mesa-mod/src/amd/common/ac_gpu_info.c
+--- mesa/src/amd/common/ac_gpu_info.c	2020-05-25 19:29:34.091684000 +0200
++++ mesa-mod/src/amd/common/ac_gpu_info.c	2020-05-27 19:08:05.183370215 +0200
+@@ -128,6 +128,8 @@
+ 		return 1024 * 1024;
  	case CHIP_FIJI:
-diff -uNr mesa/src/amd/common/ac_llvm_util.c mesa-mod/src/amd/common/ac_llvm_util.c
---- mesa/src/amd/common/ac_llvm_util.c	2018-09-11 18:47:34.780912201 +0200
-+++ mesa-mod/src/amd/common/ac_llvm_util.c	2018-09-11 18:53:01.943538067 +0200
-@@ -103,6 +103,10 @@
- 		return "hainan";
- 	case CHIP_BONAIRE:
- 		return "bonaire";
-+   case CHIP_LIVERPOOL:
-+       return "bonaire";
-+	case CHIP_GLADIUS:
-+       return "bonaire";
- 	case CHIP_KABINI:
- 		return "kabini";
- 	case CHIP_KAVERI:
-diff -uNr mesa/src/amd/common/ac_surface.c mesa-mod/src/amd/common/ac_surface.c
---- mesa/src/amd/common/ac_surface.c	2018-09-11 18:47:34.784912377 +0200
-+++ mesa-mod/src/amd/common/ac_surface.c	2018-09-11 18:55:20.850037923 +0200
-@@ -87,6 +87,8 @@
- 		*addrlib_family = FAMILY_KV;
- 		*addrlib_revid = get_first(AMDGPU_SPECTRE_RANGE);
- 		break;
-+	case CHIP_GLADIUS:
+ 	case CHIP_POLARIS10:
 +	case CHIP_LIVERPOOL:
- 	case CHIP_KABINI:
- 		*addrlib_family = FAMILY_KV;
- 		*addrlib_revid = get_first(AMDGPU_KALINDI_RANGE);
-diff -uNr mesa/src/amd/common/amd_family.h mesa-mod/src/amd/common/amd_family.h
---- mesa/src/amd/common/amd_family.h	2018-09-11 18:47:34.772911850 +0200
-+++ mesa-mod/src/amd/common/amd_family.h	2018-09-11 18:57:10.719068847 +0200
-@@ -82,6 +82,8 @@
-     CHIP_BONAIRE,
++	case CHIP_GLADIUS:
+ 		return 2048 * 1024;
+ 		break;
+ 	default:
+@@ -370,6 +372,8 @@
+ 	case FAMILY_KV:
+ 		identify_chip2(SPECTRE, KAVERI);
+ 		identify_chip2(SPOOKY, KAVERI);
++		identify_chip2(STARSHA, LIVERPOOL);
++		identify_chip2(STARSHP, GLADIUS);
+ 		identify_chip2(KALINDI, KABINI);
+ 		identify_chip2(GODAVARI, KABINI);
+ 		break;
+@@ -506,7 +510,7 @@
+ 	info->pa_sc_tile_steering_override = device_info.pa_sc_tile_steering_override;
+ 	info->num_render_backends = amdinfo->rb_pipes;
+ 	/* The value returned by the kernel driver was wrong. */
+-	if (info->family == CHIP_KAVERI)
++	if (info->family == CHIP_KAVERI || info->family == CHIP_LIVERPOOL)
+ 		info->num_render_backends = 2;
+ 
+ 	info->clock_crystal_freq = amdinfo->gpu_counter_freq;
+@@ -1009,6 +1013,8 @@
+ 	case CHIP_PITCAIRN:
+ 	case CHIP_VERDE:
+ 	case CHIP_BONAIRE:
++	case CHIP_LIVERPOOL:
++	case CHIP_GLADIUS:
+ 	case CHIP_HAWAII:
+ 	case CHIP_TONGA:
+ 	case CHIP_FIJI:
+@@ -1081,6 +1087,14 @@
+ 		raster_config = 0x3a00161a;
+ 		raster_config_1 = 0x0000002e;
+ 		break;
++	case CHIP_LIVERPOOL:
++		raster_config = 0x2a00161a;
++		raster_config_1 = 0x00000000;
++		break;
++	case CHIP_GLADIUS:
++		raster_config = 0x2a00161a;
++		raster_config_1 = 0x0000002e;
++		break;
+ 	default:
+ 		fprintf(stderr,
+ 			"ac: Unknown GPU, using 0 for raster_config\n");
+diff -ruN mesa/src/amd/common/amd_family.h mesa-mod/src/amd/common/amd_family.h
+--- mesa/src/amd/common/amd_family.h	2020-05-25 19:29:34.091684000 +0200
++++ mesa-mod/src/amd/common/amd_family.h	2020-05-25 20:45:32.888615030 +0200
+@@ -81,6 +81,8 @@
+     CHIP_HAINAN,
+     CHIP_BONAIRE,  /* GFX7 (Sea Islands) */
      CHIP_KAVERI,
-     CHIP_KABINI,
 +    CHIP_LIVERPOOL,
 +    CHIP_GLADIUS,
+     CHIP_KABINI,
      CHIP_HAWAII,
-     CHIP_MULLINS,
-     CHIP_TONGA,
-diff -uNr mesa/src/amd/vulkan/radv_device.c mesa-mod/src/amd/vulkan/radv_device.c
---- mesa/src/amd/vulkan/radv_device.c	2018-11-12 13:04:42.619197377 +0200
-+++ mesa-mod/src/amd/vulkan/radv_device.c	2018-11-12 13:12:55.695892319 +0200
-@@ -98,6 +98,8 @@
- 	case CHIP_HAINAN: chip_string = "AMD RADV HAINAN"; break;
- 	case CHIP_BONAIRE: chip_string = "AMD RADV BONAIRE"; break;
- 	case CHIP_KAVERI: chip_string = "AMD RADV KAVERI"; break;
-+	case CHIP_LIVERPOOL: chip_string = "AMD RADV LIVERPOOL"; break;
-+	case CHIP_GLADIUS: chip_string = "AMD RADV GLADIUS"; break;
- 	case CHIP_KABINI: chip_string = "AMD RADV KABINI"; break;
- 	case CHIP_HAWAII: chip_string = "AMD RADV HAWAII"; break;
- 	case CHIP_MULLINS: chip_string = "AMD RADV MULLINS"; break;
-diff -uNr mesa/src/gallium/targets/d3dadapter9/description.c mesa-mod/src/gallium/targets/d3dadapter9/description.c
---- mesa/src/gallium/targets/d3dadapter9/description.c	2018-09-11 18:47:35.528945018 +0200
-+++ mesa-mod/src/gallium/targets/d3dadapter9/description.c	2018-09-11 19:01:39.910848232 +0200
-@@ -52,6 +52,8 @@
+     CHIP_TONGA,    /* GFX8 (Volcanic Islands & Polaris) */
+diff -ruN mesa/src/amd/llvm/ac_llvm_util.c mesa-mod/src/amd/llvm/ac_llvm_util.c
+--- mesa/src/amd/llvm/ac_llvm_util.c	2020-05-25 19:29:34.101684000 +0200
++++ mesa-mod/src/amd/llvm/ac_llvm_util.c	2020-05-25 19:37:22.691711283 +0200
+@@ -115,6 +115,8 @@
+ 	case CHIP_HAINAN:
+ 		return "hainan";
+ 	case CHIP_BONAIRE:
++	case CHIP_LIVERPOOL:
++	case CHIP_GLADIUS:
+ 		return "bonaire";
+ 	case CHIP_KABINI:
+ 		return "kabini";
+diff -ruN mesa/src/amd/vulkan/radv_pipeline.c mesa-mod/src/amd/vulkan/radv_pipeline.c
+--- mesa/src/amd/vulkan/radv_pipeline.c	2020-05-25 19:29:34.121684000 +0200
++++ mesa-mod/src/amd/vulkan/radv_pipeline.c	2020-05-25 20:31:56.061901193 +0200
+@@ -4812,7 +4812,8 @@
+ 		/* Bug with tessellation and GS on Bonaire and older 2 SE chips. */
+ 		if ((device->physical_device->rad_info.family == CHIP_TAHITI ||
+ 		     device->physical_device->rad_info.family == CHIP_PITCAIRN ||
+-		     device->physical_device->rad_info.family == CHIP_BONAIRE) &&
++		     device->physical_device->rad_info.family == CHIP_BONAIRE  ||
++		     device->physical_device->rad_info.family == CHIP_LIVERPOOL) /* ??*/ &&
+ 		    radv_pipeline_has_gs(pipeline))
+ 			ia_multi_vgt_param.partial_vs_wave = true;
+ 		/* Needed for 028B6C_DISTRIBUTION_MODE != 0 */
+diff -ruN mesa/src/amd/vulkan/winsys/null/radv_null_winsys.c mesa-mod/src/amd/vulkan/winsys/null/radv_null_winsys.c
+--- mesa/src/amd/vulkan/winsys/null/radv_null_winsys.c	2020-05-25 19:29:34.128350000 +0200
++++ mesa-mod/src/amd/vulkan/winsys/null/radv_null_winsys.c	2020-05-25 20:40:21.458597040 +0200
+@@ -42,6 +42,10 @@
+ 	[CHIP_OLAND] = { 0x6060, 2 },
+ 	[CHIP_HAINAN] = { 0x6660, 2 },
+ 	[CHIP_BONAIRE] = { 0x6640, 4 },
++	[CHIP_LIVERPOOL] = { 0x9920, 8 },
++	[CHIP_LIVERPOOL] = { 0x9922, 8 },
++	[CHIP_LIVERPOOL] = { 0x9923, 8 },
++	[CHIP_GLADIUS] = { 0x9924, 16 },
+ 	[CHIP_KAVERI] = { 0x1304, 2 },
+ 	[CHIP_KABINI] = { 0x9830, 2 },
+ 	[CHIP_HAWAII] = { 0x67A0, 16 },
+diff -ruN mesa/src/gallium/drivers/radeonsi/si_state_draw.c mesa-mod/src/gallium/drivers/radeonsi/si_state_draw.c
+--- mesa/src/gallium/drivers/radeonsi/si_state_draw.c	2020-05-25 19:29:34.471684000 +0200
++++ mesa-mod/src/gallium/drivers/radeonsi/si_state_draw.c	2020-05-25 21:23:17.765412532 +0200
+@@ -336,7 +336,8 @@
+ 
+       /* Bug with tessellation and GS on Bonaire and older 2 SE chips. */
+       if ((sscreen->info.family == CHIP_TAHITI || sscreen->info.family == CHIP_PITCAIRN ||
+-           sscreen->info.family == CHIP_BONAIRE) &&
++           sscreen->info.family == CHIP_BONAIRE ||
++           sscreen->info.family == CHIP_LIVERPOOL) /* ? */ &&
+           key->u.uses_gs)
+          partial_vs_wave = true;
+ 
+diff -ruN mesa/src/gallium/targets/d3dadapter9/description.c mesa-mod/src/gallium/targets/d3dadapter9/description.c
+--- mesa/src/gallium/targets/d3dadapter9/description.c	2020-05-25 19:29:34.581684000 +0200
++++ mesa-mod/src/gallium/targets/d3dadapter9/description.c	2020-05-25 21:21:10.858738556 +0200
+@@ -53,6 +53,8 @@
      {"KAVERI",                      "AMD Radeon(TM) R7 Graphics"},
      {"KABINI",                      "AMD Radeon HD 8400 / R3 Series"},
      {"BONAIRE",                     "AMD Radeon HD 8770"},
-+    {"LIVERPOOL",                   "AMD Liverpool (PS4)"},
-+    {"GLADIUS",                     "AMD Gladius (PS4 PRO)"},
++    {"LIVERPOOL",                   "AMD Liverpool (Playstation 4)"},
++    {"GLADIUS",                     "AMD Gladius (Playstation 4 Pro)"},
      {"OLAND",                       "AMD Radeon HD 8670"},
      {"HAINAN",                      "AMD Radeon HD 8600M Series"},
      {"TAHITI",                      "AMD Radeon HD 7900 Series"},
-diff -uNr mesa/src/gallium/winsys/radeon/drm/radeon_drm_winsys.c mesa-mod/src/gallium/winsys/radeon/drm/radeon_drm_winsys.c
---- mesa/src/gallium/winsys/radeon/drm/radeon_drm_winsys.c	2018-09-11 18:47:36.120970991 +0200
-+++ mesa-mod/src/gallium/winsys/radeon/drm/radeon_drm_winsys.c	2018-09-11 19:04:02.301115013 +0200
-@@ -270,6 +270,8 @@
-     case CHIP_KABINI:
-     case CHIP_HAWAII:
-     case CHIP_MULLINS:
-+    case CHIP_LIVERPOOL:
-+    case CHIP_GLADIUS:
-         ws->info.chip_class = CIK;
-         break;
-     }
-@@ -291,6 +293,8 @@
-     case CHIP_KAVERI:
-     case CHIP_KABINI:
-     case CHIP_MULLINS:
-+    case CHIP_LIVERPOOL:
-+    case CHIP_GLADIUS:
-        ws->info.has_dedicated_vram = false;
-        break;
- 
-@@ -481,6 +485,8 @@
-     case CHIP_OLAND:
-     case CHIP_BONAIRE:
-     case CHIP_KAVERI:
-+    case CHIP_LIVERPOOL:
-+    case CHIP_GLADIUS:
-         ws->info.num_tcc_blocks = 4;
-         break;
-     case CHIP_PITCAIRN:
-@@ -509,9 +515,11 @@
-         case CHIP_TAHITI:
-         case CHIP_PITCAIRN:
-         case CHIP_BONAIRE:
-+	case CHIP_LIVERPOOL:
-             ws->info.max_se = 2;
-             break;
-         case CHIP_HAWAII:
-+	case CHIP_GLADIUS:
-             ws->info.max_se = 4;
-             break;
-         }
+diff -ruN mesa/src/gallium/winsys/radeon/drm/radeon_drm_winsys.c mesa-mod/src/gallium/winsys/radeon/drm/radeon_drm_winsys.c
+--- mesa/src/gallium/winsys/radeon/drm/radeon_drm_winsys.c	2020-05-25 19:29:34.598350000 +0200
++++ mesa-mod/src/gallium/winsys/radeon/drm/radeon_drm_winsys.c	2020-05-25 21:18:01.502060954 +0200
+@@ -274,6 +274,8 @@
+       ws->info.chip_class = GFX6;
+       break;
+    case CHIP_BONAIRE:
++   case CHIP_LIVERPOOL:
++   case CHIP_GLADIUS:
+    case CHIP_KAVERI:
+    case CHIP_KABINI:
+    case CHIP_HAWAII:
+@@ -492,6 +494,8 @@
+    case CHIP_VERDE:
+    case CHIP_OLAND:
+    case CHIP_BONAIRE:
++   case CHIP_LIVERPOOL:
++   case CHIP_GLADIUS:
+    case CHIP_KAVERI:
+       ws->info.num_tcc_blocks = 4;
+       break;
+@@ -521,9 +525,11 @@
+       case CHIP_TAHITI:
+       case CHIP_PITCAIRN:
+       case CHIP_BONAIRE:
++      case CHIP_LIVERPOOL:
+          ws->info.max_se = 2;
+          break;
+       case CHIP_HAWAII:
++      case CHIP_GLADIUS:
+          ws->info.max_se = 4;
+          break;
+       }
