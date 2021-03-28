@@ -101,9 +101,9 @@ diff -ruN mesa/src/amd/llvm/ac_llvm_util.c mesa-patched/src/amd/llvm/ac_llvm_uti
     case CHIP_BONAIRE:
        return "bonaire";
 +   case CHIP_LIVERPOOL:
-+      return "liverpool";
++      return "bonaire";
 +   case CHIP_GLADIUS:
-+      return "gladius";
++      return "bonaire";
     case CHIP_KABINI:
        return "kabini";
     case CHIP_KAVERI:
